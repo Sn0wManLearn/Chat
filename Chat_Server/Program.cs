@@ -14,29 +14,42 @@ namespace Chat_Server
 
             Console.WriteLine("Сервер ожидает сообщение от клиента.");
 
-            while (true)
+            bool run = true;
+
+            while (run)
             {
                 try
                 {
                     byte[] recieveBuff = udpClient.Receive(ref localEP);
                     string recievedStr = Encoding.UTF8.GetString(recieveBuff);
-                    
-                    Message? recievedMsg = Message.FromJson(recievedStr);
 
-                    if (recievedMsg != null)
+                    Thread tr1 = new Thread(() =>
                     {
-                        Console.WriteLine(recievedMsg.ToString());
+                        if (!string.IsNullOrEmpty(recievedStr))
+                        {
+                            Message? recievedMsg = Message.FromJson(recievedStr);
+                            Console.WriteLine(recievedMsg?.ToString());
 
-                        Message sendMsg = new Message() { UserName = "Server", MsgText = "Сообщение получено", MsgTime = DateTime.Now };
-                        string sendStr = sendMsg.ToJson();
+                            Message sendMsg = new Message() { UserName = "Server", MsgText = "Сообщение получено", MsgTime = DateTime.Now };
+                            string sendStr = sendMsg.ToJson();
 
-                        byte[] sendBuff = Encoding.UTF8.GetBytes(sendStr);
-                        udpClient.Send(sendBuff, localEP);
-                    }
-                    else
-                    {
-                        Console.WriteLine("Ошибка в чтении сообщения.");
-                    }
+                            byte[] sendBuff = Encoding.UTF8.GetBytes(sendStr);
+                            udpClient.Send(sendBuff, localEP);
+
+                            if (recievedMsg.MsgText.Equals("exit", StringComparison.OrdinalIgnoreCase))
+                            {
+                                run = false;
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Ошибка в чтении сообщения.");
+                        }
+                    });                    
+
+                    tr1.Start();
+                    tr1.Join();
+                  
                 }
                 catch (Exception ex)
                 {

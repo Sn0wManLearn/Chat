@@ -13,10 +13,11 @@ namespace Chat_Client
             
             string? nikName = args[0];
 
-            while (true)
+           while (true)
             {
                 Console.WriteLine("Введите сообщение");
                 string? textToSend = Console.ReadLine();
+
                 if (String.IsNullOrEmpty(textToSend))
                 {
                     break;
@@ -48,6 +49,11 @@ namespace Chat_Client
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex.ToString());
+                }
+
+                if (textToSend.Equals("exit", StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
                 }
             }
 
