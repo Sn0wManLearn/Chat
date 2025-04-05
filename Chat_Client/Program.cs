@@ -48,7 +48,9 @@ namespace Chat_Client
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.ToString());
+                    Console.WriteLine(ex.Message);
+                    Console.WriteLine("Работа программы завершена.");
+                    return;
                 }
 
                 if (textToSend.Equals("exit", StringComparison.OrdinalIgnoreCase))
