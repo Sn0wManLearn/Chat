@@ -117,8 +117,6 @@ namespace Chat_Server
             }
         }
 
-        }
-
         static void RecievingMSG()
         {
             while (!ct.IsCancellationRequested)
