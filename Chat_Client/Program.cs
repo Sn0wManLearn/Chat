@@ -10,93 +10,102 @@ namespace Chat_Client
         static UdpClient udpClient = new UdpClient();
         static void Main(string[] args)
         {
+            string fromName = "Alan"; //args[0];
 
-            string fromeName = args[0];
+            Task tskSend = new Task(() => Sendler(fromName));
+            Task tskListen = new Task(() => Listener());
 
-            Thread tr1 = new Thread(() => Sendler(fromeName));
-            Thread tr2 = new Thread(() => Listener());
+            tskSend.Start();
+            tskListen.Start();
 
-            try
-            {
-                tr1.Start();
-                tr2.Start();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                Console.WriteLine("Работа программы завершена.");
-                return;
-            }
+            Task.WaitAny(new Task[] { tskSend, tskListen });
+        }
+        static bool IsOkInput(string input)
+        {
+            return !string.IsNullOrEmpty(input) && !string.IsNullOrWhiteSpace(input);
         }
 
-        public static void Sendler(string fromeName)
+        static string GetInput()
+        {
+            string result = Console.ReadLine();
+            while (!IsOkInput(result))
+            {
+                Console.WriteLine("Введена пустая строка. Попробуйте еще раз.");
+                result = Console.ReadLine();
+            }
+            return result;
+        }
+        public static void Sendler(string fromName)
         {
             while (true)
             {
-                Console.WriteLine("Введите имя получателя");
-                string? sendToUser = Console.ReadLine();
-
-                if (string.IsNullOrEmpty(sendToUser))
+                try
                 {
-                    Console.WriteLine("Имя пользователя не введено");
-                    continue;
+                    Console.WriteLine("Введите имя получателя");
+                    string? sendToUser = GetInput();
+
+                    Console.WriteLine("Введите сообщение");
+                    string? textToSend = GetInput();
+
+                    Message msgToSend = new Message(fromName, sendToUser, textToSend);
+
+                    PrototypePattern ptp = new PrototypePattern(msgToSend);
+                    Message msgWithConstTxt = (Message)ptp.Clone();
+                    string strToSend = msgWithConstTxt.ToJson();
+
+                    byte[] sendBuff = Encoding.UTF8.GetBytes(strToSend);
+                    udpClient.Send(sendBuff, localEP);
+
+                    // byte[] receivedBuff = udpClient.Receive(ref localEP);
+                    // string receivedStr = Encoding.UTF8.GetString(receivedBuff);
+
+                    // Message? recievedMsg = Message.FromJson(receivedStr);
+
+                    // if (recievedMsg != null)
+                    // {
+                    //     Console.WriteLine(recievedMsg.ToString());
+                    // }
+                    // else
+                    // {
+                    //     Console.WriteLine("Ошибка в чтении сообщения.");
+                    // }
+
+                    // if (textToSend.Equals("exit", StringComparison.OrdinalIgnoreCase))
+                    // {
+                    //     return;
+                    // }
                 }
-
-                Console.WriteLine("Введите сообщение");
-                string? textToSend = Console.ReadLine();
-
-                if (String.IsNullOrEmpty(textToSend) && !string.IsNullOrWhiteSpace(textToSend))
+                catch (Exception ex)
                 {
-                    break;
-                }
-
-                Message msgToSend = new Message(fromeName, sendToUser, textToSend);
-
-                string strToSend = msgToSend.ToJson();
-                byte[] sendBuff = Encoding.UTF8.GetBytes(strToSend);
-                udpClient.Send(sendBuff, localEP);
-
-                byte[] receivedBuff = udpClient.Receive(ref localEP);
-                string receivedStr = Encoding.UTF8.GetString(receivedBuff);
-
-                Message? recievedMsg = Message.FromJson(receivedStr);
-
-                if (recievedMsg != null)
-                {
-                    Console.WriteLine(recievedMsg.ToString());
-                }
-                else
-                {
-                    Console.WriteLine("Ошибка в чтении сообщения.");
-                }
-
-
-
-                if (textToSend.Equals("exit", StringComparison.OrdinalIgnoreCase))
-                {
-                    return;
+                    Console.WriteLine(ex.Message);
+                    Console.WriteLine("Работа программы завершена.");
                 }
             }
         }
 
         public static void Listener()
         {
-            //IPEndPoint localEP = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 12345);
-            //UdpClient udpClient = new UdpClient();
-
             while (true)
             {
-                byte[] receivedBuff = udpClient.Receive(ref localEP);
-                string receivedStr = Encoding.UTF8.GetString(receivedBuff);
-                Message? receivedMsg = Message.FromJson(receivedStr);
+                try
+                {
+                    byte[] receivedBuff = udpClient.Receive(ref localEP);
+                    string receivedStr = Encoding.UTF8.GetString(receivedBuff);
+                    Message? receivedMsg = Message.FromJson(receivedStr);
 
-                if (receivedMsg != null)
-                {
-                    Console.WriteLine(receivedMsg.ToString());
+                    if (receivedMsg != null)
+                    {
+                        Console.WriteLine(receivedMsg.ToString());
+                    }
+                    else
+                    {
+                        Console.WriteLine("Ошибка в чтении сообщения.");
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    Console.WriteLine("Ошибка в чтении сообщения.");
+                    // Console.WriteLine(ex.Message);
+                    // Console.WriteLine("Работа программы завершена.");
                 }
             }
         }

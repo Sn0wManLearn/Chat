@@ -8,7 +8,7 @@ namespace Chat_Client
 {
     internal class PrototypePattern
     {
-        public string ConstantText = "С наилучшими пожеланиями";
+        public string ConstantText = " С наилучшими пожеланиями";
         public Message Message { get; set; }
 
         public PrototypePattern(Message message)
