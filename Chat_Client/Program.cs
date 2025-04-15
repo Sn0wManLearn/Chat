@@ -10,7 +10,7 @@ namespace Chat_Client
         static UdpClient udpClient = new UdpClient(12346);
         static void Main(string[] args)
         {
-            string fromName = "Alan"; //args[0];
+            string fromName = args[0];
 
             Task tskSend = new Task(() => Sendler(fromName));
             Task tskListen = new Task(() => Listener());

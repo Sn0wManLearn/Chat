@@ -16,6 +16,7 @@ namespace Chat_Server
             Console.WriteLine("Сервер ожидает сообщение от клиента.");
 
             Dictionary<String, IPEndPoint> clients = [];
+            Dictionary<String, List<string>> unreadedMsgs = new Dictionary<string, List<string>>();
 
             while (true)
             {
@@ -38,12 +39,14 @@ namespace Chat_Server
                         if (msg.MsgText.StartsWith("register", StringComparison.InvariantCultureIgnoreCase))
                         {
                             clients.Add(msg.FromName, new IPEndPoint(localEP.Address, localEP.Port));
+                            unreadedMsgs.Add(msg.FromName, new List<string>());
                             replyMsg = "Зарегистрирован";
                             Console.WriteLine($"Пользователь {msg.FromName} зарегистрирован.");
                         }
                         else if (msg.MsgText.StartsWith("delete", StringComparison.InvariantCultureIgnoreCase))
                         {
                             clients.Remove(msg.FromName);
+                            unreadedMsgs.Remove(msg.FromName);
                             replyMsg = "Удален";
                             Console.WriteLine($"Пользователь {msg.FromName} удален.");
                         }
@@ -52,10 +55,16 @@ namespace Chat_Server
                             replyMsg = String.Join(", ", clients.Keys);
                             Console.WriteLine("Список пользователей: " + replyMsg);
                         }
+                        else if(msg.MsgText.StartsWith("GetUnreadedMessages", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            replyMsg = String.Join("\n", unreadedMsgs[msg.FromName]);
+                            Console.WriteLine($"Непрочитанные сообщения пользователя {msg.FromName}: " + replyMsg);
+                        }
                         else
                         {
                             replyMsg = "Неизвестная команда";
                         }
+                        
                     }
                     else
                     {
