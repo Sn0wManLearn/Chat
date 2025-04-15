@@ -9,7 +9,7 @@ namespace Chat_Server
         static void Main()
         {
             UdpClient udpClient = new(12345); // Сокет для прослушивания входящих соединений
-            IPEndPoint ep = new(IPAddress.Any, 0);
+            IPEndPoint localEP = new(IPAddress.Any, 0);
 
             string serverName = "Server";
 
@@ -19,31 +19,35 @@ namespace Chat_Server
 
             while (true)
             {
-                var data = udpClient.Receive(ref ep);
+                byte[] data = udpClient.Receive(ref localEP);
                 string msgStr = Encoding.UTF8.GetString(data); // Преобразование байтового массива в строку
                 try
                 {
                     Message msg = Message.FromJson(msgStr);
                     
                     Console.WriteLine(msg.ToString());
+                    if (msg.MsgText.StartsWith("exit", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        return;
+                    }
 
                     string replyMsg = "";
 
                     if (msg.ToName.ToLower() == "server")
                     {
-                        if (msg.MsgText.ToLower() == "register")
+                        if (msg.MsgText.StartsWith("register", StringComparison.InvariantCultureIgnoreCase))
                         {
-                            clients.Add(msg.FromName, new IPEndPoint(ep.Address, ep.Port));
+                            clients.Add(msg.FromName, new IPEndPoint(localEP.Address, localEP.Port));
                             replyMsg = "Зарегистрирован";
                             Console.WriteLine($"Пользователь {msg.FromName} зарегистрирован.");
                         }
-                        if (msg.MsgText.Equals("delete", StringComparison.OrdinalIgnoreCase))
+                        else if (msg.MsgText.StartsWith("delete", StringComparison.InvariantCultureIgnoreCase))
                         {
                             clients.Remove(msg.FromName);
                             replyMsg = "Удален";
                             Console.WriteLine($"Пользователь {msg.FromName} удален.");
                         }
-                        if (msg.MsgText.Equals("list", StringComparison.OrdinalIgnoreCase))
+                        else if (msg.MsgText.StartsWith("list", StringComparison.InvariantCultureIgnoreCase))
                         {
                             replyMsg = String.Join(", ", clients.Keys);
                             Console.WriteLine("Список пользователей: " + replyMsg);
@@ -59,7 +63,7 @@ namespace Chat_Server
                         {
                             var forwardMessage = new Message(msg.FromName, msg.ToName, msg.MsgText).ToJson();
                             byte[] forvardBytes = System.Text.Encoding.UTF8.GetBytes(forwardMessage);
-                            udpClient.Send(forvardBytes, forvardBytes.Length, ep);
+                            udpClient.Send(forvardBytes, forvardBytes.Length, localEP);
                             Console.WriteLine("Сообщение отправлено" + msg.ToName);
                             replyMsg = "Отправлено";
                         }
@@ -78,7 +82,7 @@ namespace Chat_Server
                     var replyMessageJson = replyMsgWithConstTxt.ToJson();
 
                     var replyBytes = Encoding.UTF8.GetBytes(replyMessageJson);
-                    udpClient.Send(replyBytes, replyBytes.Length, ep);
+                    udpClient.Send(replyBytes, replyBytes.Length, localEP);
                     Console.WriteLine("Ответ отправлен");
                 }
                 catch (Exception ex)

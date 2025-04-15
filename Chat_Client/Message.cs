@@ -11,8 +11,6 @@ namespace Chat_Client
 {
     internal class Message
     {
-        [JsonIgnore]
-        public static Dictionary<string, IPEndPoint> Clients { get; set; }
         public string FromName { get; set; }
         public string ToName { get; set; }
         public string MsgText { get; set; }

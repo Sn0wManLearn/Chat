@@ -7,7 +7,7 @@ namespace Chat_Client
     internal class Program
     {
         static IPEndPoint localEP = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 12345);
-        static UdpClient udpClient = new UdpClient();
+        static UdpClient udpClient = new UdpClient(12346);
         static void Main(string[] args)
         {
             string fromName = "Alan"; //args[0];
@@ -40,7 +40,7 @@ namespace Chat_Client
             while (true)
             {
                 try
-                {
+                {                    
                     Console.WriteLine("Введите имя получателя");
                     string? sendToUser = GetInput();
 
@@ -56,24 +56,10 @@ namespace Chat_Client
                     byte[] sendBuff = Encoding.UTF8.GetBytes(strToSend);
                     udpClient.Send(sendBuff, localEP);
 
-                    // byte[] receivedBuff = udpClient.Receive(ref localEP);
-                    // string receivedStr = Encoding.UTF8.GetString(receivedBuff);
-
-                    // Message? recievedMsg = Message.FromJson(receivedStr);
-
-                    // if (recievedMsg != null)
-                    // {
-                    //     Console.WriteLine(recievedMsg.ToString());
-                    // }
-                    // else
-                    // {
-                    //     Console.WriteLine("Ошибка в чтении сообщения.");
-                    // }
-
-                    // if (textToSend.Equals("exit", StringComparison.OrdinalIgnoreCase))
-                    // {
-                    //     return;
-                    // }
+                    if (textToSend.Equals("exit", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return;
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -104,8 +90,8 @@ namespace Chat_Client
                 }
                 catch (Exception ex)
                 {
-                    // Console.WriteLine(ex.Message);
-                    // Console.WriteLine("Работа программы завершена.");
+                    Console.WriteLine(ex.Message);
+                    Console.WriteLine("Работа программы завершена.");
                 }
             }
         }
