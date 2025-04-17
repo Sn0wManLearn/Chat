@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Chat_Client
 {
-    internal class Message
+    public class Message
     {
         public string FromName { get; set; }
         public string ToName { get; set; }

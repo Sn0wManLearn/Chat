@@ -4,11 +4,11 @@ using System.Text;
 
 namespace Chat_Client
 {
-    internal class Program
+    public class Program
     {
         static IPEndPoint localEP = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 12345);
         static UdpClient udpClient = new UdpClient(12346);
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             string fromName = args[0];
 
